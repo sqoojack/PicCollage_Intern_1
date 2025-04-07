@@ -12,32 +12,36 @@ def Load_model():
     model.load_state_dict(torch.load("best_model_17.pth", map_location='cpu'))
     return model
 
-# fix the seed
-seed = 42
-torch.manual_seed(seed)
+def main():
+    # fix the seed
+    seed = 42
+    torch.manual_seed(seed)
 
-dataset = ScatterPlotDataset('correlation_assignment/responses.csv', 'correlation_assignment/images', transform=image_transforms)
-_, _, test_set = Split_data(dataset, seed)
+    dataset = ScatterPlotDataset('correlation_assignment/responses.csv', 'correlation_assignment/images', transform=image_transforms)
+    _, _, test_set = Split_data(dataset, seed)
 
-test_loader = DataLoader(test_set, batch_size=32, shuffle=False)
+    test_loader = DataLoader(test_set, batch_size=32, shuffle=False)
 
-model = Load_model()
-model.eval()
-device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
-model.to(device)
+    model = Load_model()
+    model.eval()
+    device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
+    model.to(device)
 
-""" Calculate MSE and MAE on testing data """
-mse_sum = 0.0
-mae_sum = 0.0
-with torch.no_grad():
-    for images, labels in test_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        outputs = model(images).squeeze(1)
-        diff = outputs - labels
-        mse_sum += torch.sum(diff ** 2).item()
-        mae_sum += torch.sum(torch.abs(diff)).item()
+    """ Calculate MSE and MAE on testing data """
+    mse_sum = 0.0
+    mae_sum = 0.0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images).squeeze(1)
+            diff = outputs - labels
+            mse_sum += torch.sum(diff ** 2).item()
+            mae_sum += torch.sum(torch.abs(diff)).item()
 
-mse = mse_sum / len(test_set)
-mae = mae_sum / len(test_set)
-print(f"Test MSE: {mse:.4f}, Test MAE: {mae:.4f}")
+    mse = mse_sum / len(test_set)
+    mae = mae_sum / len(test_set)
+    print(f"Test MSE: {mse:.4f}, Test MAE: {mae:.4f}")
+
+if __name__ == "__main__":
+    main()
