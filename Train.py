@@ -86,6 +86,7 @@ def main():
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             torch.save(model.state_dict(), f"best_model.pth")    # model.state_dict(): returns a dict of all trainable parameters (e.g., weights and biases)
+            not_improve_epoch = 0
         else:
             not_improve_epoch += 1
             if(not_improve_epoch > 3):  # if not improving over 3 consecutive epoch, then it will early stopping
